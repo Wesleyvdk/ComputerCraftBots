@@ -50,9 +50,9 @@ function GoTo(target)
     -- move in X
     if pos.x ~= target.x then
         if target.x > pos.x then
-            Face(1) -- east
+            face(1) -- east
         else
-            Face(3) -- west
+            face(3) -- west
         end
         while pos.x ~= target.x do
             turtle.forward()
@@ -63,9 +63,9 @@ function GoTo(target)
     -- move in Z
     if pos.z ~= target.z then
         if target.z > pos.z then
-            Face(2) -- south
+            face(2) -- south
         else
-            Face(0) -- north
+            face(0) -- north
         end
         while pos.z ~= target.z do
             turtle.forward()
@@ -111,17 +111,17 @@ function MineLayer()
         end
         if w < floorWidth then
             if w % 2 == 1 then
-                Face((direction + 1) % 4)
+                face((direction + 1) % 4)
             else
-                Face((direction + 3) % 4)
+                face((direction + 3) % 4)
             end
             turtle.dig()
             turtle.forward()
             turtle.digUp()
             if w % 2 == 1 then
-                Face((direction + 1) % 4)
+                face((direction + 1) % 4)
             else
-                Face((direction + 3) % 4)
+                face((direction + 3) % 4)
             end
         end
     end
@@ -141,7 +141,7 @@ end
 print("Starting mining turtle program...")
 peripheral.getNames()
 UpdateGPS()
-RefuelInitial()
+RefuelIfNeeded()
 
 while true do
     if turtle.getFuelLevel() < fuelThreshold then
