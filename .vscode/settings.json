@@ -1,6 +1,8 @@
 {
     "Lua.diagnostics.globals": [
         "turtle",
-        "face"
+        "face",
+        "peripheral",
+        "sleep"
     ]
 }

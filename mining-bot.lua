@@ -19,11 +19,14 @@ local direction = 0 -- 0 = north, 1 = east, 2 = south, 3 = west
 -- HELPER FUNCTIONS
 function UpdateGPS()
     print("Updating GPS...")
-    local x, y, z = gps.locate(3)
+    local x, y, z = gps.locate()
+    if not x then
+        print("Unable to locate GPS position.")
+        sleep(2)
+        return
+    end
     if x then
         pos.x, pos.y, pos.z = x, y, z
-    else
-        error("Unable to locate GPS position.")
     end
 end
 
@@ -130,6 +133,7 @@ end
 
 -- MAIN ROUTINE
 print("Starting mining turtle program...")
+peripheral.getNames()
 UpdateGPS()
 
 while true do
