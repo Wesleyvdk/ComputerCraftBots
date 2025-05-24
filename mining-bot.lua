@@ -17,7 +17,7 @@ local pos = { x = 0, y = 0, z = 0 }
 local direction = 0 -- 0 = north, 1 = east, 2 = south, 3 = west
 
 -- HELPER FUNCTIONS
-function updateGPS()
+function UpdateGPS()
     print("Updating GPS...")
     local x, y, z = gps.locate(3)
     if x then
@@ -27,22 +27,22 @@ function updateGPS()
     end
 end
 
-function face(dir)
+function Face(dir)
     while direction ~= dir do
         turtle.turnRight()
         direction = (direction + 1) % 4
     end
 end
 
-function goTo(target)
+function GoTo(target)
     print("Going to target...")
-    updateGPS()
+    UpdateGPS()
     -- move in Y
     while pos.y < target.y do
-        turtle.up(); updateGPS()
+        turtle.up(); UpdateGPS()
     end
     while pos.y > target.y do
-        turtle.down(); updateGPS()
+        turtle.down(); UpdateGPS()
     end
 
     -- move in X
@@ -54,7 +54,7 @@ function goTo(target)
         end
         while pos.x ~= target.x do
             turtle.forward()
-            updateGPS()
+            UpdateGPS()
         end
     end
 
@@ -67,12 +67,12 @@ function goTo(target)
         end
         while pos.z ~= target.z do
             turtle.forward()
-            updateGPS()
+            UpdateGPS()
         end
     end
 end
 
-function refuelIfNeeded()
+function RefuelIfNeeded()
     if turtle.getFuelLevel() > fuelThreshold then return end
     print("Refueling...")
     turtle.select(emptyBucketSlot)
@@ -84,7 +84,7 @@ function refuelIfNeeded()
     end
 end
 
-function dumpInventory()
+function DumpInventory()
     print("Dumping inventory into Ender Chest...")
     for i = 1, 16 do
         turtle.select(i)
@@ -92,7 +92,7 @@ function dumpInventory()
     end
 end
 
-function mineLayer()
+function MineLayer()
     print("Starting excavation of layer...")
     for w = 1, floorWidth do
         for l = 1, floorLength - 1 do
@@ -118,9 +118,9 @@ function mineLayer()
     end
 end
 
-function digFloor(depth)
+function DigFloor(depth)
     for h = 1, depth do
-        mineLayer()
+        MineLayer()
         if h < depth then
             turtle.digDown()
             turtle.down()
@@ -130,17 +130,17 @@ end
 
 -- MAIN ROUTINE
 print("Starting mining turtle program...")
-updateGPS()
+UpdateGPS()
 
 while true do
     if turtle.getFuelLevel() < fuelThreshold then
-        goTo(tankLocation)
-        refuelIfNeeded()
+        GoTo(tankLocation)
+        RefuelIfNeeded()
     end
-    goTo(chestLocation)
-    dumpInventory()
-    goTo(pos) -- Return to previous position (save as needed)
-    digFloor(floorHeight)
+    GoTo(chestLocation)
+    DumpInventory()
+    GoTo(pos) -- Return to previous position (save as needed)
+    DigFloor(floorHeight)
     print("Layer complete. Returning to top to repeat or exit.")
     break -- Remove break to repeat for more layers
 end
