@@ -74,6 +74,13 @@ function GoTo(target)
     end
 end
 
+function RefuelInitial()
+    print("Refueling initial fuel...")
+    turtle.select(emptyBucketSlot)
+    turtle.refuel(1)
+    print("Refueled. Current fuel: ", turtle.getFuelLevel())
+end
+
 function RefuelIfNeeded()
     if turtle.getFuelLevel() > fuelThreshold then return end
     print("Refueling...")
@@ -134,7 +141,7 @@ end
 print("Starting mining turtle program...")
 peripheral.getNames()
 UpdateGPS()
-RefuelIfNeeded()
+RefuelInitial()
 
 while true do
     if turtle.getFuelLevel() < fuelThreshold then
