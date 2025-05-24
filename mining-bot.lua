@@ -143,6 +143,36 @@ function digFloor(depth)
   end
 end
 
+function goTo(target)
+    updateGPS()
+  
+    -- Move in Y first (up/down)
+    while pos.y < target.y do
+      moveUp()
+    end
+    while pos.y > target.y do
+      moveDown()
+    end
+  
+    -- Move in X (east-west)
+    if pos.x < target.x then
+      face(1) -- east
+      while pos.x < target.x do moveForward() end
+    elseif pos.x > target.x then
+      face(3) -- west
+      while pos.x > target.x do moveForward() end
+    end
+  
+    -- Move in Z (north-south)
+    if pos.z < target.z then
+      face(2) -- south
+      while pos.z < target.z do moveForward() end
+    elseif pos.z > target.z then
+      face(0) -- north
+      while pos.z > target.z do moveForward() end
+    end
+  end
+
 -- MAIN ROUTINE
 print("Starting mining turtle program...")
 if not updateGPS() then error("GPS unavailable. Aborting.") end
