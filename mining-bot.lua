@@ -4,153 +4,162 @@
 -- CONFIGURATION
 local floorWidth = 25
 local floorLength = 21
-local floorHeight = 5                               -- excluding the floor layer
+local floorHeight = 5 -- excluding the floor layer
 
 local chestLocation = { x = -676, y = 58, z = -96 } -- Replace with real GPS coords
 local tankLocation = { x = -675, y = 58, z = -96 }  -- Replace with real GPS coords
 local fuelThreshold = 200
 local emptyBucketSlot = 1
-local buildingBlockSlot = 2
 
 -- STATE
-local pos = { x = 0, y = 0, z = 0 }
+local pos = {x = 0, y = 0, z = 0}
 local direction = 0 -- 0 = north, 1 = east, 2 = south, 3 = west
+local path = {} -- stores movement history
 
 -- HELPER FUNCTIONS
-function UpdateGPS()
-    local x, y, z = gps.locate()
-    if not x then
-        print("Unable to locate GPS position.")
-        sleep(2)
-        return
-    end
-    if x then
-        pos.x, pos.y, pos.z = x, y, z
-    end
+function updateGPS()
+  print("Updating GPS...")
+  local x, y, z = gps.locate(2)
+  if not x then
+    print("GPS failed! Retrying in 2s...")
+    sleep(2)
+    return false
+  end
+  pos.x, pos.y, pos.z = x, y, z
+  return true
 end
 
-function Face(dir)
-    while direction ~= dir do
-        turtle.turnRight()
-        direction = (direction + 1) % 4
-    end
+function face(dir)
+  while direction ~= dir do
+    turtle.turnRight()
+    direction = (direction + 1) % 4
+  end
 end
 
-function GoTo(target)
-    print("Going to target...")
-    UpdateGPS()
-    -- move in Y
-    while pos.y < target.y do
-        turtle.up(); UpdateGPS()
-    end
-    while pos.y > target.y do
-        turtle.down(); UpdateGPS()
-    end
+function moveForward()
+  if turtle.forward() then
+    if direction == 0 then pos.z = pos.z - 1
+    elseif direction == 1 then pos.x = pos.x + 1
+    elseif direction == 2 then pos.z = pos.z + 1
+    elseif direction == 3 then pos.x = pos.x - 1 end
+    table.insert(path, "forward")
+    return true
+  end
+  return false
+end
 
-    -- move in X
-    if pos.x ~= target.x then
-        if target.x > pos.x then
-            Face(1) -- east
-        else
-            Face(3) -- west
-        end
-        while pos.x ~= target.x do
-            turtle.forward()
-            UpdateGPS()
-        end
-    end
+function moveDown()
+  if turtle.down() then
+    pos.y = pos.y - 1
+    table.insert(path, "down")
+    return true
+  end
+  return false
+end
 
-    -- move in Z
-    if pos.z ~= target.z then
-        if target.z > pos.z then
-            Face(2) -- south
-        else
-            Face(0) -- north
-        end
-        while pos.z ~= target.z do
-            turtle.forward()
-            UpdateGPS()
-        end
+function moveUp()
+  if turtle.up() then
+    pos.y = pos.y + 1
+    table.insert(path, "up")
+    return true
+  end
+  return false
+end
+
+function backtrack()
+  for i = #path, 1, -1 do
+    local move = path[i]
+    if move == "forward" then
+      turtle.back()
+      if direction == 0 then pos.z = pos.z + 1
+      elseif direction == 1 then pos.x = pos.x - 1
+      elseif direction == 2 then pos.z = pos.z - 1
+      elseif direction == 3 then pos.x = pos.x + 1 end
+    elseif move == "up" then
+      turtle.down()
+      pos.y = pos.y - 1
+    elseif move == "down" then
+      turtle.up()
+      pos.y = pos.y + 1
     end
+  end
+  path = {}
+end
+
+function refuelIfNeeded()
+  if turtle.getFuelLevel() > fuelThreshold then return end
+  print("Refueling...")
+  turtle.select(emptyBucketSlot)
+  if turtle.place() then -- try to fill from Mekanism tank
+    turtle.refuel(1)
+    print("Refueled. Current fuel: ", turtle.getFuelLevel())
+  else
+    print("Failed to get lava from tank.")
+  end
 end
 
 function RefuelInitial()
-    print("Refueling initial fuel...")
-    turtle.select(emptyBucketSlot)
-    turtle.refuel(1)
-    print("Refueled. Current fuel: ", turtle.getFuelLevel())
+  print("Refueling initial fuel...")
+  turtle.select(emptyBucketSlot)
+  turtle.refuel(1)
+  print("Refueled. Current fuel: ", turtle.getFuelLevel())
 end
 
-function RefuelIfNeeded()
-    if turtle.getFuelLevel() > fuelThreshold then return end
-    print("Refueling...")
-    turtle.select(emptyBucketSlot)
-    if turtle.place() then -- try to fill from Mekanism tank
-        turtle.refuel(1)
-        print("Refueled. Current fuel: ", turtle.getFuelLevel())
-    else
-        print("Failed to get lava from tank.")
-    end
+function dumpInventory()
+  print("Dumping inventory into Ender Chest...")
+  for i = 1, 16 do
+    turtle.select(i)
+    turtle.drop()
+  end
 end
 
-function DumpInventory()
-    print("Dumping inventory into Ender Chest...")
-    for i = 1, 16 do
-        turtle.select(i)
-        turtle.drop()
+function mineLayer()
+  print("Starting excavation of layer...")
+  for w = 1, floorWidth do
+    for l = 1, floorLength - 1 do
+      turtle.dig()
+      moveForward()
+      turtle.digUp()
     end
+    if w < floorWidth then
+      if w % 2 == 1 then face((direction + 1) % 4)
+      else face((direction + 3) % 4) end
+      turtle.dig()
+      moveForward()
+      turtle.digUp()
+      if w % 2 == 1 then face((direction + 1) % 4)
+      else face((direction + 3) % 4) end
+    end
+  end
 end
 
-function MineLayer()
-    print("Starting excavation of layer...")
-    for w = 1, floorWidth do
-        for l = 1, floorLength - 1 do
-            turtle.dig()
-            turtle.forward()
-            turtle.digUp()
-        end
-        if w < floorWidth then
-            if w % 2 == 1 then
-                Face((direction + 1) % 4)
-            else
-                Face((direction + 3) % 4)
-            end
-            turtle.dig()
-            turtle.forward()
-            turtle.digUp()
-            if w % 2 == 1 then
-                Face((direction + 1) % 4)
-            else
-                Face((direction + 3) % 4)
-            end
-        end
+function digFloor(depth)
+  for h = 1, depth do
+    mineLayer()
+    if h < depth then
+      turtle.digDown()
+      moveDown()
     end
-end
-
-function DigFloor(depth)
-    for h = 1, depth do
-        MineLayer()
-        if h < depth then
-            turtle.digDown()
-            turtle.down()
-        end
-    end
+  end
 end
 
 -- MAIN ROUTINE
 print("Starting mining turtle program...")
-UpdateGPS()
+if not updateGPS() then error("GPS unavailable. Aborting.") end
 RefuelInitial()
 
 while true do
-    if turtle.getFuelLevel() < fuelThreshold then
-        GoTo(tankLocation)
-        RefuelIfNeeded()
-    end
-    GoTo(pos) -- Return to previous position (save as needed)
-    DigFloor(floorHeight)
-    print("Layer complete. Returning to top to repeat or exit.")
-    GoTo(chestLocation)
-    DumpInventory()
-    break -- Remove break to repeat for more layers
+  if turtle.getFuelLevel() < fuelThreshold then
+    backtrack()
+    updateGPS()
+    goTo(tankLocation)
+    refuelIfNeeded()
+    goTo(chestLocation)
+    dumpInventory()
+    break
+  end
+  digFloor(floorHeight)
+  print("Layer complete. Returning to top to repeat or exit.")
+  backtrack()
+  break -- Remove break to repeat for more layers
 end

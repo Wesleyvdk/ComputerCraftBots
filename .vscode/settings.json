@@ -3,6 +3,16 @@
         "turtle",
         "face",
         "peripheral",
-        "sleep"
+        "sleep",
+        "digFloor",
+        "goTo",
+        "dumpInventory",
+        "mineLayer",
+        "refuelIfNeeded",
+        "backtrack",
+        "moveUp",
+        "moveDown",
+        "moveForward",
+        "updateGPS"
     ]
 }
