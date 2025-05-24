@@ -18,6 +18,7 @@ local direction = 0 -- 0 = north, 1 = east, 2 = south, 3 = west
 
 -- HELPER FUNCTIONS
 function updateGPS()
+    print("Updating GPS...")
     local x, y, z = gps.locate(3)
     if x then
         pos.x, pos.y, pos.z = x, y, z
@@ -34,6 +35,7 @@ function face(dir)
 end
 
 function goTo(target)
+    print("Going to target...")
     updateGPS()
     -- move in Y
     while pos.y < target.y do
