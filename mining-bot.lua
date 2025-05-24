@@ -139,19 +139,18 @@ end
 
 -- MAIN ROUTINE
 print("Starting mining turtle program...")
-peripheral.getNames()
 UpdateGPS()
-RefuelIfNeeded()
+RefuelInitial()
 
 while true do
     if turtle.getFuelLevel() < fuelThreshold then
         GoTo(tankLocation)
         RefuelIfNeeded()
     end
-    GoTo(chestLocation)
-    DumpInventory()
     GoTo(pos) -- Return to previous position (save as needed)
     DigFloor(floorHeight)
     print("Layer complete. Returning to top to repeat or exit.")
+    GoTo(chestLocation)
+    DumpInventory()
     break -- Remove break to repeat for more layers
 end
