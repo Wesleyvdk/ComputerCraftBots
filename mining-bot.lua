@@ -50,9 +50,9 @@ function GoTo(target)
     -- move in X
     if pos.x ~= target.x then
         if target.x > pos.x then
-            face(1) -- east
+            Face(1) -- east
         else
-            face(3) -- west
+            Face(3) -- west
         end
         while pos.x ~= target.x do
             turtle.forward()
@@ -63,9 +63,9 @@ function GoTo(target)
     -- move in Z
     if pos.z ~= target.z then
         if target.z > pos.z then
-            face(2) -- south
+            Face(2) -- south
         else
-            face(0) -- north
+            Face(0) -- north
         end
         while pos.z ~= target.z do
             turtle.forward()
@@ -111,17 +111,17 @@ function MineLayer()
         end
         if w < floorWidth then
             if w % 2 == 1 then
-                face((direction + 1) % 4)
+                Face((direction + 1) % 4)
             else
-                face((direction + 3) % 4)
+                Face((direction + 3) % 4)
             end
             turtle.dig()
             turtle.forward()
             turtle.digUp()
             if w % 2 == 1 then
-                face((direction + 1) % 4)
+                Face((direction + 1) % 4)
             else
-                face((direction + 3) % 4)
+                Face((direction + 3) % 4)
             end
         end
     end
