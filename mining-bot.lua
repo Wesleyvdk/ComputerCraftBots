@@ -11,6 +11,21 @@ local tankLocation = { x = -675, y = 58, z = -96 }  -- Replace with real GPS coo
 local fuelThreshold = 200
 local emptyBucketSlot = 1
 
+-- MINING PATTERN CONFIGURATION
+local args = {...}
+local miningPatternSide = "right" -- Default
+if args[1] == "left" then
+  miningPatternSide = "left"
+  print("Mining pattern set to: left")
+elseif args[1] == "right" then
+  miningPatternSide = "right"
+  print("Mining pattern set to: right")
+elseif args[1] ~= nil then
+  print("Warning: Invalid argument for mining pattern: '" .. args[1] .. "'. Defaulting to 'right'.")
+else
+  print("Mining pattern not specified. Defaulting to 'right'.")
+end
+
 -- STATE
 local pos = {x = 0, y = 0, z = 0}
 local direction = 0 -- 0 = north, 1 = east, 2 = south, 3 = west
@@ -128,7 +143,21 @@ function dumpInventory()
 end
 
 function mineLayer()
-  print("Starting excavation of layer...")
+  print("Starting excavation of layer with pattern: " .. miningPatternSide)
+  local turnRightOffset = 1
+  local turnLeftOffset = 3
+
+  local oddRowTurnOffset
+  local evenRowTurnOffset
+
+  if miningPatternSide == "right" then
+    oddRowTurnOffset = turnRightOffset
+    evenRowTurnOffset = turnLeftOffset
+  else -- miningPatternSide == "left"
+    oddRowTurnOffset = turnLeftOffset
+    evenRowTurnOffset = turnRightOffset
+  end
+
   for w = 1, floorWidth do
     for l = 1, floorLength - 1 do
       turtle.dig()
@@ -136,13 +165,18 @@ function mineLayer()
       turtle.digUp()
     end
     if w < floorWidth then
-      if w % 2 == 1 then face((direction + 1) % 4)
-      else face((direction + 3) % 4) end
+      local currentTurnOffset
+      if w % 2 == 1 then -- Odd row
+        currentTurnOffset = oddRowTurnOffset
+      else -- Even row
+        currentTurnOffset = evenRowTurnOffset
+      end
+
+      face((direction + currentTurnOffset) % 4)
       turtle.dig()
       moveForward()
       turtle.digUp()
-      if w % 2 == 1 then face((direction + 1) % 4)
-      else face((direction + 3) % 4) end
+      face((direction + currentTurnOffset) % 4)
     end
   end
 end
