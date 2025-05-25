@@ -33,16 +33,18 @@ function face(dir)
   while direction ~= dir do
     turtle.turnRight()
     direction = (direction + 1) % 4
+    table.insert(path, {type = "turnRight"}) -- Record the turn
   end
 end
 
 function moveForward()
+  local originalDir = direction -- Capture direction before move
   if turtle.forward() then
     if direction == 0 then pos.z = pos.z - 1
     elseif direction == 1 then pos.x = pos.x + 1
     elseif direction == 2 then pos.z = pos.z + 1
     elseif direction == 3 then pos.x = pos.x - 1 end
-    table.insert(path, "forward")
+    table.insert(path, {type = "forward", dir = originalDir}) -- Store type and direction
     return true
   end
   return false
@@ -51,7 +53,7 @@ end
 function moveDown()
   if turtle.down() then
     pos.y = pos.y - 1
-    table.insert(path, "down")
+    table.insert(path, {type = "down"}) -- Store as table
     return true
   end
   return false
@@ -60,30 +62,42 @@ end
 function moveUp()
   if turtle.up() then
     pos.y = pos.y + 1
-    table.insert(path, "up")
+    table.insert(path, {type = "up"}) -- Store as table
     return true
   end
   return false
 end
 
 function backtrack()
+  print("Backtracking... Path length: " .. #path)
   for i = #path, 1, -1 do
-    local move = path[i]
-    if move == "forward" then
+    local moveRecord = path[i]
+    if moveRecord.type == "forward" then
       turtle.back()
-      if direction == 0 then pos.z = pos.z + 1
-      elseif direction == 1 then pos.x = pos.x - 1
-      elseif direction == 2 then pos.z = pos.z - 1
-      elseif direction == 3 then pos.x = pos.x + 1 end
-    elseif move == "up" then
+      -- Update pos based on the direction of the original forward move
+      local originalForwardDir = moveRecord.dir
+      if originalForwardDir == 0 then pos.z = pos.z + 1
+      elseif originalForwardDir == 1 then pos.x = pos.x - 1
+      elseif originalForwardDir == 2 then pos.z = pos.z - 1
+      elseif originalForwardDir == 3 then pos.x = pos.x + 1 end
+      -- Turtle's actual 'direction' variable remains unchanged by turtle.back()
+    elseif moveRecord.type == "up" then
       turtle.down()
       pos.y = pos.y - 1
-    elseif move == "down" then
+    elseif moveRecord.type == "down" then
       turtle.up()
       pos.y = pos.y + 1
+    elseif moveRecord.type == "turnRight" then
+      turtle.turnLeft() -- Reverse turnRight
+      direction = (direction - 1 + 4) % 4 -- Update global direction state
+    -- Add handling for "turnLeft" if it's ever directly added to path
+    -- elseif moveRecord.type == "turnLeft" then
+    --   turtle.turnRight()
+    --   direction = (direction + 1) % 4
     end
   end
-  path = {}
+  path = {} -- Clear path after backtracking
+  print("Backtracking complete. Current GPS validated pos: " .. pos.x .. "," .. pos.y .. "," .. pos.z .. " Current direction: " .. direction)
 end
 
 function refuelIfNeeded()
